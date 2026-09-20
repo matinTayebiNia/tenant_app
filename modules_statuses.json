@@ -1,0 +1,7 @@
+{
+    "Core": true,
+    "Log": true,
+    "Tenant": true,
+    "Product": true,
+    "Stock": true
+}
