@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->string('sku');
             $table->string('name');
-            $table->unsignedBigInteger('unit_price');
+            $table->float('unit_price')->unsigned();
             $table->tenantColumn();
             $table->unique(['tenant_id', 'sku']);
             $table->index('sku');

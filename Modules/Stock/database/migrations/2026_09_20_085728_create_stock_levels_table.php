@@ -14,10 +14,10 @@ return new class extends Migration {
             $table->id();
             $table->tenantColumn();
             $table->foreignId('product_id')->constrained('products')
-                ->nullOnDelete()
+                ->cascadeOnDelete()
                 ->cascadeOnUpdate();
             $table->foreignId('warehouse_id')->constrained('warehouses')
-                ->nullOnDelete()
+                ->cascadeOnDelete()
                 ->cascadeOnUpdate();
             $table->unsignedBigInteger('quantity');
             $table->timestamp('updated_at')->nullable();

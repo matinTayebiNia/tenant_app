@@ -8,6 +8,8 @@ use Modules\Core\Http\Middleware\HasUserAgent;
 use Modules\Core\Support\Logger;
 use Modules\Core\Helpers\ExceptionRender;
 use Modules\Core\Helpers\GeneralExceptionHandler;
+use Modules\Tenant\Support\Http\Middleware\DetectTenantScopeFromHeader;
+use Modules\Tenant\Support\Http\Middleware\DetectTenantScopeFromSubDomain;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -18,7 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->appendToGroup('api', HasUserAgent::class);
-        $middleware->appendToGroup('api', 'tenant-scope');
+        $middleware->appendToGroup('api', DetectTenantScopeFromHeader::class);
+        $middleware->appendToGroup('api', DetectTenantScopeFromSubDomain::class);
         $middleware->trustProxies('*');
     })
     ->withExceptions(function (Exceptions $exceptions) {

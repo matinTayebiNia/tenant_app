@@ -53,10 +53,5 @@ class RouteServiceProvider extends ServiceProvider
     {
         $this->app['router']->aliasMiddleware('modelBelongsToScope', ModelBelongsToScope::class);
 
-        $this->app['router']->middlewareGroup('tenant-scope', [
-            DetectTenantScopeFromHeader::class,
-            DetectTenantScopeFromSubDomain::class
-        ]);
-
     }
 }

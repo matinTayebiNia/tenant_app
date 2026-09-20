@@ -1,0 +1,100 @@
+name: tenant-app
+
+x-app-image: &app-image
+    build:
+        context: .
+        dockerfile: Dockerfile
+        args:
+            APP_ENV: ${APP_ENV:-local}
+    image: tenant-app:latest
+    env_file:
+        - .env
+    environment:
+        DB_HOST: mysql
+        # Always the in-network port, independent of whatever host port `mysql`'s `ports:` mapping
+        # publishes DB_PORT as (e.g. remapped to avoid clashing with a local MySQL on 3306).
+        DB_PORT: 3306
+        REDIS_HOST: redis
+    depends_on:
+        migrate:
+            condition: service_completed_successfully
+        mysql:
+            condition: service_healthy
+        redis:
+            condition: service_healthy
+    volumes:
+        - storage_data:/app/storage
+    restart: unless-stopped
+
+services:
+    mysql:
+        image: mysql:8.0
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_USER: ${DB_USERNAME}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+        volumes:
+            - mysql_data:/var/lib/mysql
+        ports:
+            -   "${DB_PORT:-3306}:3306"
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u${DB_USERNAME}", "-p${DB_PASSWORD}"]
+            interval: 5s
+            timeout: 5s
+            retries: 10
+        restart: unless-stopped
+
+    redis:
+        image: redis:7-alpine
+        volumes:
+            - redis_data:/data
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 5s
+            timeout: 5s
+            retries: 10
+        restart: unless-stopped
+
+    migrate:
+        <<: *app-image
+        depends_on:
+            mysql:
+                condition: service_healthy
+        # Seeders (AdminUserSeeder, ApprovalStepSeeder) are idempotent (firstOrNew/updateOrCreate),
+        # so re-seeding on every `docker compose up` is safe — no duplicate rows on restart.
+        command: sh -c "php artisan migrate --force && php artisan db:seed --force"
+        restart: "no"
+        healthcheck:
+            test: ["NONE"]
+
+    app:
+        <<: *app-image
+        command: php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=8000 --workers=auto --max-requests=500
+        ports:
+            - "${APP_PORT:-8000}:8000"
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:8000/login"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 20s
+
+    queue:
+        <<: *app-image
+        command: php artisan queue:work redis --queue=default --sleep=3 --tries=3 --max-time=3600
+        # The base image bakes in a FrankenPHP healthcheck (curl localhost:2019/metrics), which only
+        # makes sense for the `app` service — this container never runs FrankenPHP at all.
+        healthcheck:
+            test: ["NONE"]
+
+    scheduler:
+        <<: *app-image
+        command: php artisan schedule:work
+        healthcheck:
+            test: ["NONE"]
+
+volumes:
+    mysql_data:
+    redis_data:
+    storage_data:
