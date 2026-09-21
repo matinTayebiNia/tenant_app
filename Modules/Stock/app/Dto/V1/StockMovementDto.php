@@ -11,8 +11,8 @@ class StockMovementDto
         public int       $warehouse_id,
         public StockType $type,
         public int       $quantity,
-        public int       $reference,
-        public ?int      $destination_warehouse_id,
+        public string    $reference,
+        public ?int      $destination_warehouse_id = null,
     )
     {
     }
@@ -20,12 +20,12 @@ class StockMovementDto
     public static function make(array $data): StockMovementDto
     {
         return new self(
-            product_id: $data['product_id'],
-            warehouse_id: $data['warehouse_id'],
-            type: StockType::tryFrom($data['type']),
-            quantity: $data['quantity'],
-            reference: $data['reference'],
-            destination_warehouse_id: $data['destination_warehouse_id'],
+            product_id: @$data['product_id'],
+            warehouse_id: @$data['warehouse_id'],
+            type: StockType::tryFrom(@$data['type']),
+            quantity: @$data['quantity'],
+            reference: @$data['reference'],
+            destination_warehouse_id: @$data['destination_warehouse_id'],
         );
     }
 

@@ -23,6 +23,7 @@ return new class extends Migration {
             $table->timestamp('updated_at')->nullable();
 
             $table->unique(['tenant_id', 'product_id', 'warehouse_id']);
+            $table->index(['tenant_id', 'warehouse_id', 'product_id']);
         });
     }
 

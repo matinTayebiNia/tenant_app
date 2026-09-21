@@ -23,7 +23,7 @@ trait HasTenantScope
         self::$setting = $type ?: static::setupTenantScope();
     }
 
-    public static function bootHasSiteScopes(): void
+    public static function bootHasTenantScope(): void
     {
         self::setSetting();
     }

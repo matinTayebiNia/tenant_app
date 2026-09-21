@@ -3,7 +3,7 @@
     "alias": "stock",
     "description": "",
     "keywords": [],
-    "priority": 0,
+    "priority": 2,
     "providers": [
         "Modules\\Stock\\Providers\\StockServiceProvider"
     ],

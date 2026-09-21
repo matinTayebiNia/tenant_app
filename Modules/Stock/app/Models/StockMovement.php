@@ -19,7 +19,7 @@ class StockMovement extends Model
 
 
     const  SEARCH_FIELDS = ['reference'];
-
+    const UPDATED_AT = null;
     /**
      * The attributes that are mass assignable.
      */

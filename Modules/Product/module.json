@@ -3,7 +3,7 @@
     "alias": "product",
     "description": "",
     "keywords": [],
-    "priority": 0,
+    "priority": 1,
     "providers": [
         "Modules\\Product\\Providers\\ProductServiceProvider"
     ],

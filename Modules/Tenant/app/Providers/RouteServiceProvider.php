@@ -4,7 +4,7 @@ namespace Modules\Tenant\Providers;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
-use Modules\Tenant\Support\Http\Middleware\DetectTenantScopeFromHeader;
+use Modules\Tenant\Support\Http\Middleware\DetectTenantScopeFromHeaderOrDomain;
 use Modules\Tenant\Support\Http\Middleware\DetectTenantScopeFromSubDomain;
 use Modules\Tenant\Support\Http\Middleware\ModelBelongsToScope;
 

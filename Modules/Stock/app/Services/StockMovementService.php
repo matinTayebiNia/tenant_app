@@ -2,13 +2,13 @@
 
 namespace Modules\Stock\Services;
 
-use App\Modules\Product\Dto\V1\ProductFilterDto;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Modules\Core\DTOs\IndexDTO;
 use Modules\Core\Enums\ExceptionCode;
 use Modules\Core\Exceptions\BaseException;
+use Modules\Product\Dto\V1\ProductFilterDto;
 use Modules\Stock\Dto\V1\StockMovementDto;
 use Modules\Stock\Enums\StockType;
 use Modules\Stock\Models\StockLevel;
@@ -68,15 +68,14 @@ class StockMovementService
                     ->first();
 
                 if (!$stockLevel) {
-                    $stockLevel = StockLevel::query()->create([
+                    StockLevel::query()->create([
                         'tenant_id' => TenantScopeConfig::getCurrent()?->id,
                         'product_id' => $dto->product_id,
                         'warehouse_id' => $dto->warehouse_id,
                         'quantity' => $dto->quantity,
                     ]);
-                }
-
-                $stockLevel->increment('quantity', $dto->quantity);
+                } else
+                    $stockLevel->increment('quantity', $dto->quantity);
 
                 $this->setMovement($dto);
 
@@ -119,7 +118,7 @@ class StockMovementService
             'quantity' => $dto->quantity,
             'reference' => $dto->reference,
             'type' => $dto->type->value,
-            'meta' => isset($meta) ? json_encode($meta) : null,
+            'meta' => $meta ?? null,
         ]);
     }
 
@@ -160,29 +159,33 @@ class StockMovementService
         try {
             return DB::transaction(function () use ($dto) {
 
-                $sourceStockLevel = StockLevel::query()
+                $firstWarehouseId = min($dto->warehouse_id, $dto->destination_warehouse_id);
+                $secondWarehouseId = max($dto->warehouse_id, $dto->destination_warehouse_id);
+
+                $firstLevel = StockLevel::query()
                     ->where('product_id', $dto->product_id)
-                    ->where('warehouse_id', $dto->warehouse_id)
+                    ->where('warehouse_id', $firstWarehouseId)
                     ->lockForUpdate()
                     ->HasTenantScope()
-                    ->firstOrFail();
+                    ->first();
 
-                if ($sourceStockLevel->quantity < $dto->quantity) {
+                $secondLevel = StockLevel::query()
+                    ->where('product_id', $dto->product_id)
+                    ->where('warehouse_id', $secondWarehouseId)
+                    ->lockForUpdate()
+                    ->HasTenantScope()
+                    ->first();
+
+                $sourceStockLevel = ($firstWarehouseId == $dto->warehouse_id) ? $firstLevel : $secondLevel;
+                $destinationStockLevel = ($firstWarehouseId == $dto->warehouse_id) ? $secondLevel : $firstLevel;
+
+                if (!$sourceStockLevel || $sourceStockLevel->quantity < $dto->quantity) {
                     throw ValidationException::withMessages([
                         'quantity' => "The quantity of this product is out of stock.",
                     ]);
                 }
 
-
                 $sourceStockLevel->decrement('quantity', $dto->quantity);
-
-
-                $destinationStockLevel = StockLevel::query()
-                    ->where('product_id', $dto->product_id)
-                    ->where('warehouse_id', $dto->destination_warehouse_id)
-                    ->lockForUpdate()
-                    ->HasTenantScope()
-                    ->first();
 
                 if (!$destinationStockLevel) {
                     $destinationStockLevel = StockLevel::query()->create([
@@ -191,11 +194,11 @@ class StockMovementService
                         'product_id' => $dto->product_id,
                         'tenant_id' => TenantScopeConfig::getCurrent()?->id,
                     ]);
+                } else {
+                    $destinationStockLevel->increment('quantity', $dto->quantity);
                 }
 
-                $destinationStockLevel->increment('quantity', $dto->quantity);
-
-                $this->setMovement($dto, $sourceStockLevel->warehouse_id, $dto->destination_warehouse_id);
+                $this->setMovement($dto, $dto->warehouse_id, $dto->destination_warehouse_id);
 
                 return true;
             });

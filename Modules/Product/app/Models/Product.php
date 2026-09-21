@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Core\Traits\HasDefaultSearchScope;
 use Modules\Log\Support\Traits\HasDefaultActivityLogOption;
+use Modules\Product\Database\Factories\ProductFactory;
 use Modules\Stock\Models\StockMovement;
 use Modules\Tenant\Models\Tenant;
 use Modules\Tenant\Support\Traits\HasTenantScope;
@@ -15,12 +16,19 @@ use Modules\Tenant\ValueObject\TenantScopeSetting;
 class Product extends Model
 {
 
-    use HasTenantScope, HasDefaultSearchScope, HasDefaultActivityLogOption;
+    use HasTenantScope, HasDefaultSearchScope, HasDefaultActivityLogOption,HasFactory;
+
+    const UPDATED_AT = null;
 
     protected $guarded = [
         'id',
         'created_at',
     ];
+
+    protected static function newFactory(): ProductFactory
+    {
+        return ProductFactory::new();
+    }
 
     protected $casts = [
         'created_at' => 'datetime',

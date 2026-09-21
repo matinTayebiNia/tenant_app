@@ -93,6 +93,11 @@ services:
         command: php artisan schedule:work
         healthcheck:
             test: ["NONE"]
+    stock-test-worker:
+        <<: *app-image
+        command: php artisan queue:work redis --queue=stock-concurrency-test --sleep=0 --tries=1 --timeout=30
+        healthcheck:
+            test: [ "NONE" ]
 
 volumes:
     mysql_data:

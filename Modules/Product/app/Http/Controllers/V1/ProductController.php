@@ -3,13 +3,14 @@
 namespace Modules\Product\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
-use App\Modules\Product\Dto\V1\ProductDto;
-use App\Modules\Product\Dto\V1\ProductFilterDto;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Modules\Core\DTOs\IndexDTO;
 use Modules\Core\Enums\CrudOperation;
 use Modules\Core\Http\Requests\IndexRequest;
+use Modules\Product\Dto\V1\ProductDto;
+use Modules\Product\Dto\V1\ProductFilterDto;
 use Modules\Product\Http\Requests\V1\ProductFilterRequest;
 use Modules\Product\Http\Requests\V1\ProductRequest;
 use Modules\Product\Models\Product;

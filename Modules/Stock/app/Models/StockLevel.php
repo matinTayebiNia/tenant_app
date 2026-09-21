@@ -16,8 +16,9 @@ use Modules\Tenant\ValueObject\TenantScopeSetting;
 class StockLevel extends Model
 {
 
-    use HasDefaultActivityLogOption, HasTenantScope, HasDefaultSearchScope;
+    use HasDefaultActivityLogOption, HasTenantScope, HasDefaultSearchScope,HasFactory;
 
+    const CREATED_AT = null;
     /**
      * The attributes that are mass assignable.
      */
@@ -29,6 +30,11 @@ class StockLevel extends Model
     protected $casts = [
         'updated_at' => 'datetime',
     ];
+
+    protected static function newFactory(): StockLevelFactory
+    {
+        return StockLevelFactory::new();
+    }
 
     public static function setupTenantScope(): TenantScopeSetting
     {

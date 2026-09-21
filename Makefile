@@ -24,8 +24,11 @@ logs:
 ps:
 	docker compose ps
 
-test:
-	docker compose exec app php artisan test
+stock-movement-test:
+	docker compose exec app php artisan test Modules/Stock/tests/Feature/StockMovementServiceTest.php
+
+stock-level-test:
+	docker compose exec app php artisan test Modules/Stock/tests/Feature/StockLevelTestApi.php
 
 shell:
 	docker compose exec app bash

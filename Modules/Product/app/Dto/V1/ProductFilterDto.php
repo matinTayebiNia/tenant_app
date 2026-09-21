@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Product\Dto\V1;
+namespace Modules\Product\Dto\V1;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Modules\Core\DTOs\HandleFilterDTO;

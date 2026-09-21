@@ -2,8 +2,8 @@
 
 namespace Modules\Product\Services;
 
-use App\Modules\Product\Dto\V1\ProductDto;
 use Modules\Core\DTOs\IndexDTO;
+use Modules\Product\Dto\V1\ProductDto;
 use Modules\Product\Models\Product;
 
 class ProductService

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Product\Dto\V1;
+namespace Modules\Product\Dto\V1;
 
 use Modules\Tenant\Helper\TenantScopeConfig;
 
