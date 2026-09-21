@@ -36,7 +36,7 @@ The application server runs on **Laravel Octane with FrankenPHP**, not the stand
 `php artisan serve` / PHP-FPM setup — the `app` service starts via
 `php artisan octane:start --server=frankenphp`. This keeps the application booted in
 memory between requests for lower latency, which matters for the sub-200ms performance
-target on `GET /api/stock-levels`.
+target on `GET /api/v1/stock-levels`.
 
 Environment variables are configured via `.env` (copied automatically from `.env.example`
 by `make setup` if it doesn't already exist). No additional service-specific configuration
@@ -106,21 +106,21 @@ failures, and a final quantity of 0.
 
 ### Indexing Strategy
 
-| Index | Purpose |
-|---|---|
+| Index | Purpose                                                                                                                                                                     |
+|---|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `UNIQUE (tenant_id, product_id, warehouse_id)` on `stock_levels` | Enforces one stock-level row per product/warehouse/tenant; also serves as the primary lookup path for `WHERE tenant_id = ? AND product_id = ?` and fully-specified queries. |
-| `INDEX (tenant_id, warehouse_id, product_id)` on `stock_levels` | Covers the reverse filter case — listing by `warehouse_id` without a `product_id` — which the first (leftmost-prefix) index cannot serve efficiently on its own. |
-| `UNIQUE (tenant_id, sku)` on `products` | Enforces SKU uniqueness per tenant and supports the `GET /api/products/{sku}/history` lookup. |
-| Foreign key indexes on `product_id`, `warehouse_id`, `tenant_id` | Standard FK indexes created automatically via `foreignId()`; support join/lookup performance for movement history and reconciliation queries. |
+| `INDEX (tenant_id, warehouse_id, product_id)` on `stock_levels` | Covers the reverse filter case — listing by `warehouse_id` without a `product_id` — which the first (leftmost-prefix) index cannot serve efficiently on its own.            |
+| `UNIQUE (tenant_id, sku)` on `products` | Enforces SKU uniqueness per tenant and supports the `GET /api/v1/products/{sku}/history` lookup.                                                                             |
+| Foreign key indexes on `product_id`, `warehouse_id`, `tenant_id` | Standard FK indexes created automatically via `foreignId()`; support join/lookup performance for movement history and reconciliation queries.                               |
 
-Together, the two composite indexes on `stock_levels` ensure that `GET /api/stock-levels`
+Together, the two composite indexes on `stock_levels` ensure that `GET /api/v1/stock-levels`
 can be filtered by `product_id` alone, `warehouse_id` alone, or both, while always using an
 index rather than a table scan — this is what keeps the endpoint performant at the
 1,000,000-row scale required by the task.
 
 ## Known Limitations
 
-- **Pagination on `GET /api/stock-levels` is offset-based** (Laravel's default
+- **Pagination on `GET /api/v1/stock-levels` is offset-based** (Laravel's default
   `paginate()`). Under very deep pagination (large `OFFSET` values), MySQL must scan and
   discard all preceding rows before returning a page, which can approach or exceed the
   200ms budget at scale. Given more time, this endpoint would be migrated to
@@ -163,7 +163,7 @@ provides enough parallel workers for the test to exercise genuine simultaneous w
 against the same `stock_levels` row.
 
 `make stock-level-test` runs `Modules/Stock/tests/Feature/StockLevelTestApi.php`, covering
-the `GET /api/stock-levels` endpoint's filtering and pagination behavior.
+the `GET /api/v1/stock-levels` endpoint's filtering and pagination behavior.
 
 ## Reconciliation
 
